@@ -52,16 +52,25 @@ def cmd_digest(args):
         .order_by(DailyDigest.rank.asc())
         .all()
     )
-    lines = [f"AI Top 15 Digest — {d}"]
+    lines = [f"🤖 Daily AI Digest — {d}", "Top signals (ranked):"]
     for dd, p, e in rows:
-        tags = f" [{e.tags}]" if e and e.tags else ""
-        lines.append(f"{dd.rank}. {(e.summary_short if e and e.summary_short else p.title)}{tags}")
-        lines.append(f"   {p.link}")
+        short = (e.summary_short if e and e.summary_short else p.title or "(untitled)").strip()
+        tags = ""
+        if e and e.tags:
+            tag_parts = [t.strip() for t in e.tags.split(',') if t.strip()]
+            if tag_parts:
+                tags = " " + " ".join([f"#{t}" for t in tag_parts[:4]])
+
+        lines.append(f"{dd.rank:02d}) {short}{tags}")
+        lines.append(f"🔗 {p.link}")
+
         if p.has_video:
             ch = s.query(VideoChapter).filter_by(post_id=p.id).order_by(VideoChapter.start_sec.asc()).limit(3).all()
             if ch:
-                chunks = ", ".join([f"{c.start_sec//60:02d}:{c.start_sec%60:02d} {c.label[:24]}" for c in ch])
-                lines.append(f"   video: {chunks}")
+                chunks = ", ".join([f"{c.start_sec//60:02d}:{c.start_sec%60:02d} {c.label[:28]}" for c in ch])
+                lines.append(f"🎥 {chunks}")
+
+        lines.append("")
     text = "\n".join(lines)
     if args.out:
         with open(args.out, "w", encoding="utf-8") as f:
