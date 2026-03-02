@@ -1,0 +1,38 @@
+{
+  "uuid": "4a84f8e7-9b84-4cd7-9b5e-10f94e761f7a",
+  "shortName": "AI Digest",
+  "longName": "AI Daily Digest",
+  "companyName": "OpenClaw",
+  "versionLabel": "1.0",
+  "watchapp": {
+    "watchface": false
+  },
+  "capabilities": ["location"],
+  "resources": {
+    "media": []
+  },
+  "targetPlatforms": ["aplite", "basalt", "chalk", "diorite", "emery"],
+  "sdkVersion": "3",
+  "enableMultiJS": true,
+  "appKeys": {
+    "READY": 0,
+    "ITEM_COUNT": 1,
+    "ITEM_0": 10,
+    "ITEM_1": 11,
+    "ITEM_2": 12,
+    "ITEM_3": 13,
+    "ITEM_4": 14,
+    "ITEM_5": 15,
+    "ITEM_6": 16,
+    "ITEM_7": 17,
+    "ITEM_8": 18,
+    "ITEM_9": 19,
+    "ITEM_10": 20,
+    "ITEM_11": 21,
+    "ITEM_12": 22,
+    "ITEM_13": 23,
+    "ITEM_14": 24,
+    "REQUEST_REFRESH": 40,
+    "SELECT_INDEX": 41
+  }
+}
