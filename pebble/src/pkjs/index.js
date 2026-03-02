@@ -1,4 +1,4 @@
-var SERVER = 'http://YOUR_SERVER:8000';
+var SERVER = 'http://100.114.231.114:8000';
 var urls = [];
 
 var KEY = {
