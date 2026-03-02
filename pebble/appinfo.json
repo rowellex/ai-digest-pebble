@@ -17,6 +17,7 @@
   "appKeys": {
     "READY": 0,
     "ITEM_COUNT": 1,
+    "BATCH_START": 2,
     "ITEM_0": 10,
     "ITEM_1": 11,
     "ITEM_2": 12,
@@ -33,6 +34,8 @@
     "ITEM_13": 23,
     "ITEM_14": 24,
     "REQUEST_REFRESH": 40,
-    "SELECT_INDEX": 41
+    "SELECT_INDEX": 41,
+    "DETAIL_TITLE": 42,
+    "DETAIL_TEXT": 43
   }
 }
