@@ -17,6 +17,24 @@ sources:
     weight: 1.1
     active: true
 
+  - name: "arXiv cs.LG"
+    kind: "rss"
+    url: "https://export.arxiv.org/rss/cs.LG"
+    weight: 1.35
+    active: true
+
+  - name: "arXiv cs.AI"
+    kind: "rss"
+    url: "https://export.arxiv.org/rss/cs.AI"
+    weight: 1.30
+    active: true
+
+  - name: "Simon Willison Weblog"
+    kind: "rss"
+    url: "https://simonwillison.net/atom/everything/"
+    weight: 1.15
+    active: true
+
   # Replace/add with public X list/account RSS mirrors when available.
   # - name: "AI X List Mirror"
   #   kind: "rss"
