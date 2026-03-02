@@ -9,6 +9,7 @@ from ai_signal_hub.models import Base, make_engine, make_session
 from ai_signal_hub.ingest import load_sources, sync_sources, ingest_all
 from ai_signal_hub.ranking import rank_for_day
 from ai_signal_hub.web import create_app
+from ai_signal_hub.models import DailyDigest, Post, Enrichment, VideoChapter
 
 
 def cmd_init_db(args):
@@ -38,6 +39,37 @@ def cmd_rank(args):
     print(f"ranked {n} posts for {d}")
 
 
+def cmd_digest(args):
+    engine = make_engine(settings.db_url)
+    Session = make_session(engine)
+    s = Session()
+    d = date.today() if args.date == "today" else datetime.strptime(args.date, "%Y-%m-%d").date()
+    rows = (
+        s.query(DailyDigest, Post, Enrichment)
+        .join(Post, DailyDigest.post_id == Post.id)
+        .outerjoin(Enrichment, Enrichment.post_id == Post.id)
+        .filter(DailyDigest.digest_date == d)
+        .order_by(DailyDigest.rank.asc())
+        .all()
+    )
+    lines = [f"AI Top 15 Digest — {d}"]
+    for dd, p, e in rows:
+        tags = f" [{e.tags}]" if e and e.tags else ""
+        lines.append(f"{dd.rank}. {(e.summary_short if e and e.summary_short else p.title)}{tags}")
+        lines.append(f"   {p.link}")
+        if p.has_video:
+            ch = s.query(VideoChapter).filter_by(post_id=p.id).order_by(VideoChapter.start_sec.asc()).limit(3).all()
+            if ch:
+                chunks = ", ".join([f"{c.start_sec//60:02d}:{c.start_sec%60:02d} {c.label[:24]}" for c in ch])
+                lines.append(f"   video: {chunks}")
+    text = "\n".join(lines)
+    if args.out:
+        with open(args.out, "w", encoding="utf-8") as f:
+            f.write(text + "\n")
+    else:
+        print(text)
+
+
 def cmd_runserver(args):
     app = create_app()
     app.run(host=settings.host, port=settings.port, debug=False)
@@ -58,8 +90,13 @@ def main():
     p2.add_argument("--date", default="today")
     p2.set_defaults(func=cmd_rank)
 
-    p3 = sp.add_parser("runserver")
-    p3.set_defaults(func=cmd_runserver)
+    p3 = sp.add_parser("digest")
+    p3.add_argument("--date", default="today")
+    p3.add_argument("--out", default="")
+    p3.set_defaults(func=cmd_digest)
+
+    p4 = sp.add_parser("runserver")
+    p4.set_defaults(func=cmd_runserver)
 
     args = p.parse_args()
     args.func(args)

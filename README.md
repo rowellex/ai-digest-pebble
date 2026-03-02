@@ -33,7 +33,28 @@ Open: `http://127.0.0.1:8000`
 ## Scheduling (free)
 Use cron/termux-job-scheduler:
 - ingest every 30 min
-- rank daily at 23:58 local
+- rank + digest daily at 8:00 local (or your preferred time)
+
+Example cron lines:
+
+```cron
+*/30 * * * * cd /data/data/com.termux/files/home/.openclaw/workspace && . .venv/bin/activate && python manage.py ingest >> data/cron.log 2>&1
+0 8 * * * cd /data/data/com.termux/files/home/.openclaw/workspace && . .venv/bin/activate && python manage.py rank --date today && python manage.py digest --date today --out data/digest-today.txt >> data/cron.log 2>&1
+```
+
+## Run + view
+
+```bash
+cd /data/data/com.termux/files/home/.openclaw/workspace
+source .venv/bin/activate
+python manage.py runserver
+```
+
+View in browser:
+- Phone (same network): `http://<computer-ip>:8000`
+- Local device/browser: `http://127.0.0.1:8000`
+- JSON API: `/api/digest/YYYY-MM-DD`
+- Pebble compact API: `/api/pebble/YYYY-MM-DD`
 
 ## Notes
 - Video chaptering is optional and degrades gracefully if transcript tooling is unavailable.
