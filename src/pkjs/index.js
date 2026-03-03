@@ -13,8 +13,21 @@ var KEY = {
   DETAIL_TEXT: 43
 };
 
+function localDateStr(d) {
+  var y = d.getFullYear();
+  var m = String(d.getMonth() + 1).padStart(2, '0');
+  var day = String(d.getDate()).padStart(2, '0');
+  return y + '-' + m + '-' + day;
+}
+
 function today() {
-  return new Date().toISOString().slice(0, 10);
+  return localDateStr(new Date());
+}
+
+function yesterday() {
+  var d = new Date();
+  d.setDate(d.getDate() - 1);
+  return localDateStr(d);
 }
 
 function clean(s) {
@@ -54,17 +67,12 @@ function sendDetail(idx) {
   Pebble.sendAppMessage(payload, function() {}, function(err){ console.log('detail send failed', err); });
 }
 
-function fetchDigest() {
-  var url = SERVER + '/api/digest/' + today();
-  fetch(url)
-    .then(function(r) { return r.json(); })
-    .then(function(doc) {
-      var items = (doc && doc.items) ? doc.items : [];
-      urls = [];
-      titles = [];
-      details = [];
+function handleDigestItems(items) {
+  urls = [];
+  titles = [];
+  details = [];
 
-      for (var i = 0; i < Math.min(items.length, 15); i++) {
+  for (var i = 0; i < Math.min(items.length, 15); i++) {
         var it = items[i];
         urls.push(it.link || '');
         titles.push(it.title || it.short || ('Item #' + (i + 1)));
@@ -87,6 +95,19 @@ function fetchDigest() {
       }
 
       sendBatch(0, 3);
+}
+
+function fetchDigestFor(day, fallbackDay) {
+  var url = SERVER + '/api/digest/' + day;
+  fetch(url)
+    .then(function(r) { return r.json(); })
+    .then(function(doc) {
+      var items = (doc && doc.items) ? doc.items : [];
+      if (!items.length && fallbackDay) {
+        fetchDigestFor(fallbackDay, null);
+        return;
+      }
+      handleDigestItems(items);
     })
     .catch(function(err) {
       console.log('fetch failed', err);
@@ -94,6 +115,10 @@ function fetchDigest() {
       details = ['Could not reach digest server. Check Tailscale + server health.'];
       sendBatch(0, 1);
     });
+}
+
+function fetchDigest() {
+  fetchDigestFor(today(), yesterday());
 }
 
 Pebble.addEventListener('ready', function() {
