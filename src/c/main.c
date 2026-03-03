@@ -1,8 +1,8 @@
 #include <pebble.h>
 
 #define MAX_ITEMS 15
-#define TITLE_LEN 96
-#define DETAIL_LEN 1200
+#define TITLE_LEN 220
+#define DETAIL_LEN 1400
 
 static Window *s_list_window, *s_detail_window;
 static MenuLayer *s_menu_layer;
@@ -11,7 +11,7 @@ static TextLayer *s_detail_title_layer, *s_detail_text_layer;
 
 static int s_item_count = 0;
 static char s_titles[MAX_ITEMS][TITLE_LEN];
-static char s_detail_title[128];
+static char s_detail_title[180];
 static char s_detail_text[DETAIL_LEN];
 
 static void request_refresh(void) {
@@ -33,7 +33,17 @@ static uint16_t menu_get_num_rows_callback(MenuLayer *menu_layer, uint16_t secti
 }
 
 static int16_t menu_get_cell_height_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *context) {
-  return 44;
+  if (s_item_count == 0) return 44;
+  GRect b = layer_get_bounds(menu_layer_get_layer(menu_layer));
+  GSize sz = graphics_text_layout_get_content_size(
+      s_titles[cell_index->row],
+      fonts_get_system_font(FONT_KEY_GOTHIC_18),
+      GRect(8, 0, b.size.w - 16, 600),
+      GTextOverflowModeWordWrap,
+      GTextAlignmentLeft);
+  int h = sz.h + 14;
+  if (h < 32) h = 32;
+  return h;
 }
 
 static void menu_draw_row_callback(GContext *ctx, const Layer *cell_layer, MenuIndex *cell_index, void *context) {
@@ -41,7 +51,16 @@ static void menu_draw_row_callback(GContext *ctx, const Layer *cell_layer, MenuI
     menu_cell_basic_draw(ctx, cell_layer, "Loading…", "Fetching daily digest", NULL);
     return;
   }
-  menu_cell_basic_draw(ctx, cell_layer, s_titles[cell_index->row], NULL, NULL);
+
+  graphics_context_set_text_color(ctx, GColorWhite);
+  graphics_draw_text(
+      ctx,
+      s_titles[cell_index->row],
+      fonts_get_system_font(FONT_KEY_GOTHIC_18),
+      GRect(8, 4, layer_get_bounds(cell_layer).size.w - 12, layer_get_bounds(cell_layer).size.h - 6),
+      GTextOverflowModeWordWrap,
+      GTextAlignmentLeft,
+      NULL);
 }
 
 static void menu_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *context) {
@@ -57,7 +76,7 @@ static void menu_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, v
 static void detail_scroll_click_handler(ClickRecognizerRef recognizer, void *context) {
   int dir = (int)(intptr_t)context;
   GPoint offset = scroll_layer_get_content_offset(s_detail_scroll);
-  int step = 36; // ~two lines per click
+  int step = 36; // ~two text lines per click
   offset.y += dir * step;
   if (offset.y > 0) offset.y = 0;
 
@@ -87,7 +106,7 @@ static void update_detail_layout(void) {
   layer_set_frame(text_layer_get_layer(s_detail_title_layer), GRect(4, y, bounds.size.w - 8, title_size.h + 4));
   y += title_size.h + 8;
 
-  layer_set_frame(text_layer_get_layer(s_detail_text_layer), GRect(4, y, bounds.size.w - 8, 2000));
+  layer_set_frame(text_layer_get_layer(s_detail_text_layer), GRect(4, y, bounds.size.w - 8, 2200));
   GSize text_size = text_layer_get_content_size(s_detail_text_layer);
   layer_set_frame(text_layer_get_layer(s_detail_text_layer), GRect(4, y, bounds.size.w - 8, text_size.h + 8));
 
@@ -128,7 +147,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     update_detail_layout();
   }
 
-  layer_mark_dirty(menu_layer_get_layer(s_menu_layer));
+  menu_layer_reload_data(s_menu_layer);
 }
 
 static void window_list_load(Window *window) {
@@ -163,7 +182,7 @@ static void window_detail_load(Window *window) {
   text_layer_set_text(s_detail_title_layer, "");
   text_layer_set_text_alignment(s_detail_title_layer, GTextAlignmentLeft);
 
-  s_detail_text_layer = text_layer_create(GRect(4, 48, bounds.size.w - 8, 400));
+  s_detail_text_layer = text_layer_create(GRect(4, 48, bounds.size.w - 8, 600));
   text_layer_set_font(s_detail_text_layer, fonts_get_system_font(FONT_KEY_GOTHIC_24));
   text_layer_set_text(s_detail_text_layer, "");
   text_layer_set_text_alignment(s_detail_text_layer, GTextAlignmentLeft);
@@ -195,7 +214,7 @@ static void init(void) {
   window_stack_push(s_list_window, true);
 
   app_message_register_inbox_received(inbox_received_callback);
-  app_message_open(4096, 512);
+  app_message_open(8192, 512);
 
   request_refresh();
 }

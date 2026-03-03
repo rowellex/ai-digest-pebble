@@ -36,7 +36,7 @@ function clean(s) {
 
 function clip(s, n) {
   s = clean(s);
-  return s.length > n ? s.slice(0, n - 1) + '…' : s;
+  return s.length > n ? s.slice(0, n) : s;
 }
 
 function sendBatch(start, batchSize) {
@@ -47,7 +47,7 @@ function sendBatch(start, batchSize) {
   for (var i = 0; i < batchSize; i++) {
     var idx = start + i;
     if (idx >= titles.length) break;
-    payload[KEY.ITEM_0 + i] = clip((idx + 1) + ') ' + titles[idx], 84);
+    payload[KEY.ITEM_0 + i] = clip((idx + 1) + ') ' + titles[idx], 180);
   }
 
   Pebble.sendAppMessage(payload, function() {
@@ -94,7 +94,7 @@ function handleDigestItems(items) {
     details = ['Digest is empty for today.'];
   }
 
-  sendBatch(0, 3);
+  sendBatch(0, 1);
 }
 
 function fetchDigestFor(day, fallbackDay) {
